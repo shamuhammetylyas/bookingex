@@ -1,18 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/justinas/nosurf"
 )
-
-func WriteToConsole(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		fmt.Println("Hit the page")
-		next.ServeHTTP(w, req)
-	})
-}
 
 // NoSurf adds CSRF protection to all POST requests
 func NoSurf(next http.Handler) http.Handler {
@@ -27,7 +19,9 @@ func NoSurf(next http.Handler) http.Handler {
 	return csrfHandler
 }
 
-// SessionLoad loads and saves the session on every request
+// LoadAndSave loads and saves the session on every request.
+// Doredilen sessiony load edip shony her request-e save edyar.
+// Muny etmek bilen biz her sahypada(handlerde) doredilen session valueny alyp bilyaris
 func SessionLoad(next http.Handler) http.Handler {
 	return session.LoadAndSave(next)
 }
