@@ -9,12 +9,14 @@ import (
 
 	"github.com/ShamuhammetYlyas/bookings/pkg/config"
 	"github.com/ShamuhammetYlyas/bookings/pkg/models"
+	"github.com/justinas/nosurf"
 )
 
 var functions = template.FuncMap{}
 var app *config.AppConfig
 
-func AddDefaultData(td *models.TemplateData) *models.TemplateData {
+func AddDefaultData(td *models.TemplateData, req *http.Request) *models.TemplateData {
+	td.CSRFToken = nosurf.Token(req)
 	return td
 }
 
@@ -26,7 +28,7 @@ func NewTemplate(a *config.AppConfig) {
 	app = a
 }
 
-func RenderTemplate(res http.ResponseWriter, tmpl string, td *models.TemplateData) {
+func RenderTemplate(res http.ResponseWriter, req *http.Request, tmpl string, td *models.TemplateData) {
 	// eger app production mod-da bolsa onda app configin icindaki parse edilen templateler ulanylyar
 	// app configin icinde
 	// app compile edilende templateler parse edilyarde app configin icindaki TemplateCache-de saklanyar
@@ -52,7 +54,7 @@ func RenderTemplate(res http.ResponseWriter, tmpl string, td *models.TemplateDat
 	// td renderden gelyan data.
 	// eger biz bir datany hemme template-da ulanjak bolsak template execute edilmaka shona sho datany goshmaly bolyarys.
 	// shu yerde renderden gelyan data yenede ussune data goshyarys.
-	td = AddDefaultData(td)
+	td = AddDefaultData(td, req)
 
 	// bytes package-in icindaki Buffer structy ucin ramda bir yer allocate edyar
 	buf := new(bytes.Buffer)

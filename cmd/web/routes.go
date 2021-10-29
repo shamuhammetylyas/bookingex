@@ -39,6 +39,12 @@ func routes(app *config.AppConfig) http.Handler {
 	//localhost:8080/about request ugratsa handlers package-in Repo structyn about handleri ishleyar
 	mux.Get("/", handlers.Repo.Home)
 	mux.Get("/about", handlers.Repo.About)
+	mux.Get("/contact", handlers.Repo.Contact)
+	mux.Get("/generals-quarters", handlers.Repo.Generals)
+	mux.Get("/majors-suite", handlers.Repo.Majors)
+	mux.Get("/make-reservation", handlers.Repo.Reservation)
+	mux.Get("/search-availability", handlers.Repo.Availability)
+	mux.Post("/search-availability", handlers.Repo.PostAvailability)
 
 	// web sahypada goyulan static fayllary(img, css, js) sho web sahypalarda enable etmek ucin fileServer doretmeli
 	// bu fileServer file-leri serve etmek ucin bir manager diyip hasap edelin. FileServer bir fileSystem-e garashyar

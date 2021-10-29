@@ -52,7 +52,7 @@ func (m *Repository) Home(res http.ResponseWriter, req *http.Request) {
 	// Session *config.AppConfigin Session propertisi. Biz muny main.go-da beripdik ilki bashda
 	// Put session managerin receiver funksiyasy
 	m.App.Session.Put(req.Context(), "remote_ip", remoteIP)
-	render.RenderTemplate(res, "home.page.tmpl", &models.TemplateData{})
+	render.RenderTemplate(res, req, "home.page.tmpl", &models.TemplateData{})
 }
 
 func (m *Repository) About(res http.ResponseWriter, req *http.Request) {
@@ -63,7 +63,31 @@ func (m *Repository) About(res http.ResponseWriter, req *http.Request) {
 	remoteIP := m.App.Session.GetString(req.Context(), "remote_ip")
 	stringMap["remote_ip"] = remoteIP
 
-	render.RenderTemplate(res, "about.page.tmpl", &models.TemplateData{
+	render.RenderTemplate(res, req, "about.page.tmpl", &models.TemplateData{
 		StringMap: stringMap,
 	})
+}
+
+func (m *Repository) Contact(res http.ResponseWriter, req *http.Request) {
+	render.RenderTemplate(res, req, "contact.page.tmpl", &models.TemplateData{})
+}
+
+func (m *Repository) Generals(res http.ResponseWriter, req *http.Request) {
+	render.RenderTemplate(res, req, "generals.page.tmpl", &models.TemplateData{})
+}
+
+func (m *Repository) Majors(res http.ResponseWriter, req *http.Request) {
+	render.RenderTemplate(res, req, "majors.page.tmpl", &models.TemplateData{})
+}
+
+func (m *Repository) Reservation(res http.ResponseWriter, req *http.Request) {
+	render.RenderTemplate(res, req, "make-reservation.page.tmpl", &models.TemplateData{})
+}
+
+func (m *Repository) Availability(res http.ResponseWriter, req *http.Request) {
+	render.RenderTemplate(res, req, "search-availability.page.tmpl", &models.TemplateData{})
+}
+
+func (m *Repository) PostAvailability(res http.ResponseWriter, req *http.Request) {
+
 }

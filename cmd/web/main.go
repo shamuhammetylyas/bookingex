@@ -36,7 +36,7 @@ func main() {
 	// hemme parse edilen template-leri tc variable-a assign etdik
 	tc, err := render.CreateTemplateCache()
 	if err != nil {
-		log.Fatal("cannot create template cache")
+		log.Fatal(err)
 	}
 
 	// parse edilen template-leri app configdaki TemplateCache-e beryaris
