@@ -3,8 +3,8 @@ package main
 import (
 	"net/http"
 
-	"github.com/ShamuhammetYlyas/bookings/pkg/config"
-	"github.com/ShamuhammetYlyas/bookings/pkg/handlers"
+	"github.com/ShamuhammetYlyas/bookings/internal/config"
+	"github.com/ShamuhammetYlyas/bookings/internal/handlers"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -45,6 +45,7 @@ func routes(app *config.AppConfig) http.Handler {
 	mux.Get("/make-reservation", handlers.Repo.Reservation)
 	mux.Get("/search-availability", handlers.Repo.Availability)
 	mux.Post("/search-availability", handlers.Repo.PostAvailability)
+	mux.Post("/search-availability-json", handlers.Repo.AvailabilityJSON)
 
 	// web sahypada goyulan static fayllary(img, css, js) sho web sahypalarda enable etmek ucin fileServer doretmeli
 	// bu fileServer file-leri serve etmek ucin bir manager diyip hasap edelin. FileServer bir fileSystem-e garashyar

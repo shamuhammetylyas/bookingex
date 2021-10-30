@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"github.com/ShamuhammetYlyas/bookings/pkg/config"
-	"github.com/ShamuhammetYlyas/bookings/pkg/models"
+	"github.com/ShamuhammetYlyas/bookings/internal/config"
+	"github.com/ShamuhammetYlyas/bookings/internal/models"
 	"github.com/justinas/nosurf"
 )
 
@@ -16,6 +16,7 @@ var functions = template.FuncMap{}
 var app *config.AppConfig
 
 func AddDefaultData(td *models.TemplateData, req *http.Request) *models.TemplateData {
+	// CSRFToken datasy default data. Hemme template-e shu data gidyar
 	td.CSRFToken = nosurf.Token(req)
 	return td
 }
