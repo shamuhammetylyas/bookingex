@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/ShamuhammetYlyas/bookings/internal/config"
+	"github.com/ShamuhammetYlyas/bookings/internal/forms"
 	"github.com/ShamuhammetYlyas/bookings/internal/models"
 	"github.com/ShamuhammetYlyas/bookings/internal/render"
 )
@@ -83,7 +84,15 @@ func (m *Repository) Majors(res http.ResponseWriter, req *http.Request) {
 }
 
 func (m *Repository) Reservation(res http.ResponseWriter, req *http.Request) {
-	render.RenderTemplate(res, req, "make-reservation.page.tmpl", &models.TemplateData{})
+	render.RenderTemplate(res, req, "make-reservation.page.tmpl", &models.TemplateData{
+		// laravelidaki formdaky old value-lar ucin we formyn errorlaryny gorkezmek ucin
+		// renderde-de form objecti gerek bolyar
+		Form: forms.New(nil),
+	})
+}
+
+func (m *Repository) PostReservation(res http.ResponseWriter, req *http.Request) {
+
 }
 
 func (m *Repository) Availability(res http.ResponseWriter, req *http.Request) {
