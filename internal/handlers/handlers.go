@@ -92,7 +92,34 @@ func (m *Repository) Reservation(res http.ResponseWriter, req *http.Request) {
 }
 
 func (m *Repository) PostReservation(res http.ResponseWriter, req *http.Request) {
+	err := req.ParseForm()
+	if err != nil {
+		log.Println(err)
+		return
+	}
 
+	reservation := models.Reservation{
+		FirstName: req.Form.Get("first_name"),
+		LastName:  req.Form.Get("last_name"),
+		Phone:     req.Form.Get("phone"),
+		Email:     req.Form.Get("email"),
+	}
+	form := forms.New(req.PostForm)
+	form.Has("first_name", req)
+
+	if !form.Valid() {
+		data := make(map[string]interface{})
+		data["reservation"] = reservation
+
+		render.RenderTemplate(res, req, "make-reservation.page.tmpl", &models.TemplateData{
+			// laravelidaki formdaky old value-lar ucin we formyn errorlaryny gorkezmek ucin
+			// renderde-de form objecti gerek bolyar
+			Form: form,
+			Data: data,
+		})
+
+		return
+	}
 }
 
 func (m *Repository) Availability(res http.ResponseWriter, req *http.Request) {
