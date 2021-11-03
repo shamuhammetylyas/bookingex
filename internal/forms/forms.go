@@ -1,8 +1,12 @@
 package forms
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
+
+	"github.com/asaskevich/govalidator"
 )
 
 //Form struct holds form
@@ -35,9 +39,33 @@ func (f *Form) Has(field string, req *http.Request) bool {
 	x := req.Form.Get(field)
 	// return x != ""
 	if x == "" {
-		f.Errors.Add(field, "This field cannot be blank")
+		return false
+	}
+	return true
+}
+
+func (f *Form) Required(fields ...string) {
+	for _, field := range fields {
+		// f.Get => shu yerdaki Get funcksiya form pointerin icindaki url.Values-in get metodydyr. Embedded struct ulanylany ucin sheyle yazylyar
+		value := f.Get(field)
+		if strings.TrimSpace(value) == "" {
+			f.Errors.Add(field, "This field cannot be blank")
+		}
+	}
+}
+
+func (f *Form) MinLength(field string, length int8, req *http.Request) bool {
+	x := req.Form.Get(field)
+	if len(x) < int(length) {
+		f.Errors.Add(field, fmt.Sprintf("This field must be at least %d characters long", length))
 		return false
 	}
 
 	return true
+}
+
+func (f *Form) IsEmail(field string) {
+	if !govalidator.IsEmail(field) {
+		f.Errors.Add(field, "Invalid Email address")
+	}
 }

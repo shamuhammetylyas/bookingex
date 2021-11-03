@@ -84,10 +84,14 @@ func (m *Repository) Majors(res http.ResponseWriter, req *http.Request) {
 }
 
 func (m *Repository) Reservation(res http.ResponseWriter, req *http.Request) {
+	var emptyReservation models.Reservation
+	data := make(map[string]interface{})
+	data["reservation"] = emptyReservation
 	render.RenderTemplate(res, req, "make-reservation.page.tmpl", &models.TemplateData{
 		// laravelidaki formdaky old value-lar ucin we formyn errorlaryny gorkezmek ucin
 		// renderde-de form objecti gerek bolyar
 		Form: forms.New(nil),
+		Data: data,
 	})
 }
 
@@ -104,8 +108,13 @@ func (m *Repository) PostReservation(res http.ResponseWriter, req *http.Request)
 		Phone:     req.Form.Get("phone"),
 		Email:     req.Form.Get("email"),
 	}
+	//req.PostForm dine ParseForm metody cagyrylanyndan sonra ulayp bolyar
+	//POST, PUT, PATCH metodlary bilen gelen formyn parsed edilen gornushini saklayar
 	form := forms.New(req.PostForm)
-	form.Has("first_name", req)
+	// form.Has("first_name", req)
+	form.Required("first_name", "last_name", "email")
+	form.MinLength("first_name", 3, req)
+	// form.IsEmail("email")
 
 	if !form.Valid() {
 		data := make(map[string]interface{})
@@ -120,6 +129,9 @@ func (m *Repository) PostReservation(res http.ResponseWriter, req *http.Request)
 
 		return
 	}
+
+	m.App.Session.Put(req.Context(), "reservation", reservation)
+	http.Redirect(res, req, "/reservation-summary", http.StatusSeeOther)
 }
 
 func (m *Repository) Availability(res http.ResponseWriter, req *http.Request) {
@@ -149,4 +161,21 @@ func (m *Repository) AvailabilityJSON(res http.ResponseWriter, req *http.Request
 
 func (m *Repository) PostAvailability(res http.ResponseWriter, req *http.Request) {
 
+}
+
+func (m *Repository) ReservationSummary(res http.ResponseWriter, req *http.Request) {
+	// m.App.Session.Get(req.Context(), "reservation") yazanymyz bilen sessiondan maglumat alyp bilemzok
+	// sessiondan maglumat almak ucin type-ni bildirmeli. bu yerde type assertion ulanyldy
+	reservation, ok := m.App.Session.Get(req.Context(), "reservation").(models.Reservation)
+	if !ok {
+		log.Println("Cannot get item from session")
+		return
+	}
+
+	data := make(map[string]interface{})
+	data["reservation"] = reservation
+
+	render.RenderTemplate(res, req, "reservation-summary.page.tmpl", &models.TemplateData{
+		Data: data,
+	})
 }
