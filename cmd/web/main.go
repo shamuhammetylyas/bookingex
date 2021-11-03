@@ -20,6 +20,26 @@ var app config.AppConfig
 var session *scs.SessionManager
 
 func main() {
+	err := run()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Server started on port %s\n", portNumber)
+
+	//serverimiiz goshmaca configurationlar bilen ishleder yaly http.Server bilen ishledyaris
+	// http.Server bir structyr bir shu yerde structyn bir instance-ni doredip shon adresini srv variable-a beryaris
+	// Handler bilen gelyan requestleri routes funksiyasy bilen handle etjekdigimizi bildiryaris.
+	// onun icinde birden app configleri geerek bolan yagdayynda ulanar yaly doredilen app configin adresini ugdatyarys
+	srv := &http.Server{
+		Addr:    portNumber,
+		Handler: routes(&app),
+	}
+
+	err = srv.ListenAndServe()
+	log.Fatal(err)
+}
+
+func run() error {
 	// what am I going to put in the session
 	// sessionda data saklajakdygymyzy birinji applicationa bildirmeli
 	// gob => built in package
@@ -43,6 +63,7 @@ func main() {
 	tc, err := render.CreateTemplateCache()
 	if err != nil {
 		log.Fatal(err)
+		return err
 	}
 
 	// parse edilen template-leri app configdaki TemplateCache-e beryaris
@@ -61,18 +82,5 @@ func main() {
 	// variable-a denleyar we netijede shu yerde doredilen app configurationymyz handlers packageda ulanar yaly bolar
 	repo := handlers.NewRepo(&app)
 	handlers.NewHandlers(repo)
-
-	fmt.Printf("Server started on port %s\n", portNumber)
-
-	//serverimiiz goshmaca configurationlar bilen ishleder yaly http.Server bilen ishledyaris
-	// http.Server bir structyr bir shu yerde structyn bir instance-ni doredip shon adresini srv variable-a beryaris
-	// Handler bilen gelyan requestleri routes funksiyasy bilen handle etjekdigimizi bildiryaris.
-	// onun icinde birden app configleri geerek bolan yagdayynda ulanar yaly doredilen app configin adresini ugdatyarys
-	srv := &http.Server{
-		Addr:    portNumber,
-		Handler: routes(&app),
-	}
-
-	err = srv.ListenAndServe()
-	log.Fatal(err)
+	return nil
 }
