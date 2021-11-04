@@ -155,6 +155,7 @@ func (m *Repository) AvailabilityJSON(res http.ResponseWriter, req *http.Request
 	}
 
 	res.Header().Set("Content-Type", "application/json")
+	// fmt.Fprint(res, out)
 	res.Write(out)
 
 }
@@ -169,8 +170,13 @@ func (m *Repository) ReservationSummary(res http.ResponseWriter, req *http.Reque
 	reservation, ok := m.App.Session.Get(req.Context(), "reservation").(models.Reservation)
 	if !ok {
 		log.Println("Cannot get item from session")
+		m.App.Session.Put(req.Context(), "error", "Cannot get reservation from session")
+		http.Redirect(res, req, "/", http.StatusTemporaryRedirect)
 		return
 	}
+
+	//sessiondaky reservationy ayyryar
+	m.App.Session.Remove(req.Context(), "reservation")
 
 	data := make(map[string]interface{})
 	data["reservation"] = reservation
