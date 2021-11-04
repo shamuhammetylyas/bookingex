@@ -42,12 +42,30 @@ var theTests = []struct {
 }
 
 func TestHandlers(t *testing.T) {
+	// getRoutes bize http.Handler return edyar.
+	// bu bir yone funksiya. route-leri return edyan
+	// setup_test.go-da yazyldy
 	routes := getRoutes()
+
+	// httptest.NewTLSServer testowy server start edyar
+	// bu dine testler ucin ulanylyar diysek hem bolyar
+	// biz her handlerimizi test etmek ucin shona virtualny request ugratmaly bolyarys
+	// request ugratmak ucin hem bir server ishlap durmaly.
+	// defer ts.Close bolsa hemme requrestler gutaranson start bolan serveri stop edyar
+	// httptest.NewTLSServer-in icindaki routes bolsa start edilen serverde gelyan requestleri dinlap durmak ucin
+	// onun icinde bizin routes.go-daky routelerimiz bar.
+	// routes.go-daky route-leri acylan virtualny serwerde dinlap dur diyen yaly many beryar.
+	// request gidende hem sho getRoutes()-den
 	ts := httptest.NewTLSServer(routes)
 	defer ts.Close()
 
 	for _, e := range theTests {
 		if e.method == "GET" {
+			// ts.Client bize virtual bir client doredip beryar we Get metody bilen requrest ugradyar
+			// bu yerde ts.URL goymagymyzyn sebabi virtualny serverin haysy porta ishlap duranyny bilemzok
+			// shonun ucin oz doreden zadyny ozune goyduryarys. shu yerde localhost:8081 yaly bolyar
+			// e.url bolsa /, /about bolyar yzygiderlikde.
+			// umuman localhost:8081/about (ts.URL/e.url)-a request ugradylyan yaly bolyar
 			resp, err := ts.Client().Get(ts.URL + e.url)
 			if err != nil {
 				t.Log(err)
@@ -58,6 +76,7 @@ func TestHandlers(t *testing.T) {
 				t.Errorf("for %s expected %d but got %d", e.name, e.expectedStatusCode, resp.StatusCode)
 			}
 		} else {
+			//else-in ici POST requestler ucin
 			values := url.Values{}
 			for _, x := range e.params {
 				values.Add(x.key, x.value)
