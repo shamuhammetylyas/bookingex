@@ -2,8 +2,9 @@ package render
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"path/filepath"
 
@@ -14,8 +15,16 @@ import (
 
 var functions = template.FuncMap{}
 var app *config.AppConfig
+var pathToTemplates = "./templates"
 
+// AddDefaultData-daky datalar hemme template-a gidyar. bosh yada doly
 func AddDefaultData(td *models.TemplateData, req *http.Request) *models.TemplateData {
+	// PopString metody session doredyar yone bu session bashga sahypa gidyanca duryar
+	// usere message ibermek ucin gowy.
+	// PopString sessionda duran valueny alyarda(key-ine gora) sessiondan pozyar
+	td.Flash = app.Session.PopString(req.Context(), "flash")
+	td.Error = app.Session.PopString(req.Context(), "error")
+	td.Warning = app.Session.PopString(req.Context(), "warning")
 	// CSRFToken datasy default data. Hemme template-e shu data gidyar
 	td.CSRFToken = nosurf.Token(req)
 	return td
@@ -29,7 +38,7 @@ func NewTemplate(a *config.AppConfig) {
 	app = a
 }
 
-func RenderTemplate(res http.ResponseWriter, req *http.Request, tmpl string, td *models.TemplateData) {
+func RenderTemplate(res http.ResponseWriter, req *http.Request, tmpl string, td *models.TemplateData) error {
 	// eger app production mod-da bolsa onda app configin icindaki parse edilen templateler ulanylyar
 	// app configin icinde
 	// app compile edilende templateler parse edilyarde app configin icindaki TemplateCache-de saklanyar
@@ -49,7 +58,9 @@ func RenderTemplate(res http.ResponseWriter, req *http.Request, tmpl string, td 
 	// tmpl render-den gelyan template-in ady. home.page.tmpl gelse shony alyarda t variable-a beryar
 	t, ok := tc[tmpl]
 	if !ok {
-		log.Fatal("Could not get template from template cache")
+		// log.Fatal("Could not get template from template cache")
+		// log.Println("can't get template from cache")
+		return errors.New("can't get template from cache")
 	}
 
 	// td renderden gelyan data.
@@ -69,8 +80,12 @@ func RenderTemplate(res http.ResponseWriter, req *http.Request, tmpl string, td 
 	_ = t.Execute(buf, td)
 	_, err := buf.WriteTo(res)
 	if err != nil {
-		log.Fatal(err)
+		// log.Fatal(err)
+		fmt.Println("Error writing template to browser", err)
+		return err
 	}
+
+	return nil
 }
 
 // CreateTemplateCache creates a template cache as a map
@@ -87,7 +102,7 @@ func CreateTemplateCache() (map[string]*template.Template, error) {
 	// templates folderin icinde adynda .page.tmpl bar bolan fayllary path-i bilen alyar
 	// string slice gaytaryar.
 	// ["templates/about.page.tmpl", "templates/home.page.tmpl"]
-	pages, err := filepath.Glob("./templates/*.page.tmpl")
+	pages, err := filepath.Glob(fmt.Sprintf("%s/*.page.tmpl", pathToTemplates))
 	if err != nil {
 		return myCache, err
 	}
@@ -114,7 +129,7 @@ func CreateTemplateCache() (map[string]*template.Template, error) {
 		// templates folderin icinde adynda .layout.tmpl bar bolan fayllary path-i bilen alyar
 		// string slice gaytaryar.
 		// ["templates/base.layout.tmpl"]
-		matches, err := filepath.Glob("./templates/*.layout.tmpl")
+		matches, err := filepath.Glob(fmt.Sprintf("%s/*.layout.tmpl", pathToTemplates))
 		if err != nil {
 			return myCache, err
 		}
@@ -125,7 +140,7 @@ func CreateTemplateCache() (map[string]*template.Template, error) {
 		// biz yone ts.Execute edenimiz bilen layout hem parse boldygy bolanok.
 		// shonun ucin parse edilen template-in ussune layouty hem parse edip birleshdirmeli
 		if len(matches) > 0 {
-			ts, err = ts.ParseGlob("./templates/*.layout.tmpl")
+			ts, err = ts.ParseGlob(fmt.Sprintf("%s/*.layout.tmpl", pathToTemplates))
 			if err != nil {
 				return myCache, err
 			}
