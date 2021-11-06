@@ -15,11 +15,13 @@ import (
 
 var functions = template.FuncMap{}
 var app *config.AppConfig
+
+// shu ashakdaky ./templates render.go-da bolany ucin bookings yagny root folderin icindaki templates folder diyildigi bolyar
+// yone test-de bu uytgemeli
 var pathToTemplates = "./templates"
 
 // AddDefaultData-daky datalar hemme template-a gidyar. bosh yada doly
 func AddDefaultData(td *models.TemplateData, req *http.Request) *models.TemplateData {
-	// PopString metody session doredyar yone bu session bashga sahypa gidyanca duryar
 	// usere message ibermek ucin gowy.
 	// PopString sessionda duran valueny alyarda(key-ine gora) sessiondan pozyar
 	td.Flash = app.Session.PopString(req.Context(), "flash")

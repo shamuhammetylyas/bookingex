@@ -27,6 +27,14 @@ func TestMain(m *testing.M) {
 	session.Cookie.Secure = false
 
 	testApp.Session = session
+
+	// ashakdaky app render packagein icindaki app variable-dir
+	// bir AddDefaultData-da app ulanyanymzy ucin test bashlamak bir app configurationyny
+	// doredyaris, we render.go-daky app vairable-a beryaris
+	// son meselem render.go-daky AddDefaultData-da app ulanylyar.
+	// sho yerde yazylan app ashakdaky app-dir
+	// aslynda sho yerde ulanylyan app pointer testApp-in pointeridir.
+	// bu dine TEST-de
 	app = &testApp
 	os.Exit(m.Run())
 }

@@ -21,12 +21,16 @@ func TestAddDefaultData(t *testing.T) {
 }
 
 func TestRenderTemplate(t *testing.T) {
+	// render.go-da pathToTemplates = "./templates"-di
+	// yokarky dine render.go-da root folder-a cykyar yagny bookings folderin icine
+	// yone biz testde doly yerini gorkezmeli bolyar yagny override edyaris CreateTemplateCache funksiya ishlemaka
 	pathToTemplates = "./../../templates"
 	tc, err := CreateTemplateCache()
 	if err != nil {
 		t.Error(err)
 	}
 
+	//aslynda shu yerde setupda doreden testApp-mizin TemplateCache-ni uuytgetdigimiz bolyar
 	app.TemplateCache = tc
 
 	req, err := getSession()

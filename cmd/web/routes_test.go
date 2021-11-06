@@ -8,6 +8,8 @@ import (
 	"github.com/ShamuhammetYlyas/bookings/internal/config"
 )
 
+// routes.go-daky routes funksiyasyny test etmek ucin ulanylyar
+// routes funksiyasy config.AppConfig typeli pointere garashyany ucin shony doredip ugratdyk
 func TestRoutes(t *testing.T) {
 	var app config.AppConfig
 

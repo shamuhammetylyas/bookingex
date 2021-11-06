@@ -26,7 +26,7 @@ func main() {
 	}
 	fmt.Printf("Server started on port %s\n", portNumber)
 
-	//serverimiiz goshmaca configurationlar bilen ishleder yaly http.Server bilen ishledyaris
+	// serverimiz goshmaca configurationlar bilen ishleder yaly http.Server bilen ishledyaris
 	// http.Server bir structyr bir shu yerde structyn bir instance-ni doredip shon adresini srv variable-a beryaris
 	// Handler bilen gelyan requestleri routes funksiyasy bilen handle etjekdigimizi bildiryaris.
 	// onun icinde birden app configleri geerek bolan yagdayynda ulanar yaly doredilen app configin adresini ugdatyarys

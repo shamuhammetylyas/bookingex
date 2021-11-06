@@ -2,14 +2,13 @@ package forms
 
 import (
 	"fmt"
-	"net/http"
 	"net/url"
 	"strings"
 
 	"github.com/asaskevich/govalidator"
 )
 
-//Form struct holds form
+// Form struct holds form
 // form structymyz bosh bir html acylanda-da gerek bolyar
 // form submit edilenson errorlary html formda gorkezmek ucin hem gerek bolyar
 // bu form hem formdan gelyan datalary saklap bilyar, hem formyn errolaryny saklayar
@@ -22,6 +21,8 @@ type Form struct {
 	Errors errors
 }
 
+// Post metody gelyan form value-lery alyp bir form doretmek ucin shu New funcstiony yazdyk
+// form doretmegimizin peydasy ashakdaky receiver metodlary ulanyp bilyas son.
 func New(data url.Values) *Form {
 	return &Form{
 		data,
@@ -35,13 +36,15 @@ func (f *Form) Valid() bool {
 }
 
 // Has checks if form field is in POST and not empty
-func (f *Form) Has(field string, req *http.Request) bool {
-	x := req.Form.Get(field)
-	// return x != ""
-	if x == "" {
-		return false
-	}
-	return true
+func (f *Form) Has(field string) bool {
+	// x := req.Form.Get(field)
+	// f.Get => shu yerdaki Get funcksiya form pointerin icindaki url.Values-in get metodydyr. Embedded struct ulanylany ucin sheyle yazylyar
+	x := f.Get(field)
+	return x != ""
+	// if x == "" {
+	// 	return false
+	// }
+	// return true
 }
 
 func (f *Form) Required(fields ...string) {
@@ -54,8 +57,9 @@ func (f *Form) Required(fields ...string) {
 	}
 }
 
-func (f *Form) MinLength(field string, length int8, req *http.Request) bool {
-	x := req.Form.Get(field)
+func (f *Form) MinLength(field string, length int8) bool {
+	// f.Get => shu yerdaki Get funcksiya form pointerin icindaki url.Values-in get metodydyr. Embedded struct ulanylany ucin sheyle yazylyar
+	x := f.Get(field)
 	if len(x) < int(length) {
 		f.Errors.Add(field, fmt.Sprintf("This field must be at least %d characters long", length))
 		return false
