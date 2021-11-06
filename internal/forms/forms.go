@@ -64,7 +64,6 @@ func (f *Form) MinLength(field string, length int8) bool {
 		f.Errors.Add(field, fmt.Sprintf("This field must be at least %d characters long", length))
 		return false
 	}
-
 	return true
 }
 

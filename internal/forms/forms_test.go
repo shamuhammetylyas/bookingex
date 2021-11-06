@@ -10,6 +10,8 @@ import (
 //forms package-daki Valid funksiyasy br formyn receriver funksiyasy bolany ucin
 //funksiyanyn adyny TestForm_Valid etdik. shu yerde Form forms package-daki Form structyny anladyar
 func TestForm_Valid(t *testing.T) {
+	//httptest.NewRequest new incoming requestgaytaryp beryar.
+	//shu yere web browserden request ugradylayn yaly bolyar
 	r := httptest.NewRequest("POST", "/whatever", nil)
 	form := New(r.PostForm)
 
@@ -23,11 +25,16 @@ func TestForm_Required(t *testing.T) {
 	r := httptest.NewRequest("POST", "/whatever", nil)
 	form := New(r.PostForm)
 
+	//birinji form-da yok zatlary test etmeli.
+	//form bosh bolany ucin required warning bermeli
+	//form.Required() true gaytarsa form.Valid() hem true bolyar
+	//ashakdaky testde form.Validin false bolany gerek
 	form.Required("a", "b", "c")
 	if form.Valid() {
 		t.Error("Form shows valid when required fields missing")
 	}
 
+	// indi request bilen form data gelen bolsa shon test edyaris
 	postedData := url.Values{}
 	postedData.Add("a", "a")
 	postedData.Add("b", "b")
