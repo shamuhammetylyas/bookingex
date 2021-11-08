@@ -21,7 +21,7 @@ type Form struct {
 	Errors errors
 }
 
-// Post metody gelyan form value-lery alyp bir form doretmek ucin shu New funcstiony yazdyk
+// Post metody gelyan form value-lery alyp bir form doretmek ucin shu New functiony yazdyk
 // form doretmegimizin peydasy ashakdaky receiver metodlary ulanyp bilyas son.
 func New(data url.Values) *Form {
 	return &Form{

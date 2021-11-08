@@ -2,11 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/ShamuhammetYlyas/bookings/internal/config"
 	"github.com/ShamuhammetYlyas/bookings/internal/forms"
+	"github.com/ShamuhammetYlyas/bookings/internal/helpers"
 	"github.com/ShamuhammetYlyas/bookings/internal/models"
 	"github.com/ShamuhammetYlyas/bookings/internal/render"
 )
@@ -46,7 +46,7 @@ func NewHandlers(r *Repository) {
 func (m *Repository) Home(res http.ResponseWriter, req *http.Request) {
 	// req.RemoteAddr request ugradyan clientin adresini beryar.
 	// ony alyp remoteIP variable-a denleyaris
-	remoteIP := req.RemoteAddr
+	// remoteIP := req.RemoteAddr
 
 	// m, doredilen Repo.
 	// App sho reponyn App propertisi.
@@ -54,21 +54,14 @@ func (m *Repository) Home(res http.ResponseWriter, req *http.Request) {
 	// yagny structyn icinde struct typeli property bar
 	// Session *config.AppConfigin Session propertisi. Biz muny main.go-da beripdik ilki bashda
 	// Put session managerin receiver funksiyasy
-	m.App.Session.Put(req.Context(), "remote_ip", remoteIP)
+	// m.App.Session.Put(req.Context(), "remote_ip", remoteIP)
+
 	render.RenderTemplate(res, req, "home.page.tmpl", &models.TemplateData{})
 }
 
 func (m *Repository) About(res http.ResponseWriter, req *http.Request) {
 	//some logic here
-	stringMap := make(map[string]string)
-	stringMap["test"] = "Hello again"
-
-	remoteIP := m.App.Session.GetString(req.Context(), "remote_ip")
-	stringMap["remote_ip"] = remoteIP
-
-	render.RenderTemplate(res, req, "about.page.tmpl", &models.TemplateData{
-		StringMap: stringMap,
-	})
+	render.RenderTemplate(res, req, "about.page.tmpl", &models.TemplateData{})
 }
 
 func (m *Repository) Contact(res http.ResponseWriter, req *http.Request) {
@@ -98,7 +91,7 @@ func (m *Repository) Reservation(res http.ResponseWriter, req *http.Request) {
 func (m *Repository) PostReservation(res http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 	if err != nil {
-		log.Println(err)
+		helpers.ServerError(res, err)
 		return
 	}
 
@@ -151,7 +144,8 @@ func (m *Repository) AvailabilityJSON(res http.ResponseWriter, req *http.Request
 
 	out, err := json.MarshalIndent(resp, "", "     ")
 	if err != nil {
-		log.Println(err)
+		helpers.ServerError(res, err)
+		return
 	}
 
 	res.Header().Set("Content-Type", "application/json")
@@ -169,7 +163,8 @@ func (m *Repository) ReservationSummary(res http.ResponseWriter, req *http.Reque
 	// sessiondan maglumat almak ucin type-ni bildirmeli. bu yerde type assertion ulanyldy
 	reservation, ok := m.App.Session.Get(req.Context(), "reservation").(models.Reservation)
 	if !ok {
-		log.Println("Cannot get item from session")
+		// log.Println("Cannot get item from session")
+		m.App.ErrorLog.Println("Cannot get item from session")
 		m.App.Session.Put(req.Context(), "error", "Cannot get reservation from session")
 		http.Redirect(res, req, "/", http.StatusTemporaryRedirect)
 		return
