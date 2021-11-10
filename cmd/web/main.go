@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/ShamuhammetYlyas/bookings/internal/config"
+	"github.com/ShamuhammetYlyas/bookings/internal/driver"
 	"github.com/ShamuhammetYlyas/bookings/internal/handlers"
 	"github.com/ShamuhammetYlyas/bookings/internal/helpers"
 	"github.com/ShamuhammetYlyas/bookings/internal/models"
@@ -16,7 +17,7 @@ import (
 	"github.com/alexedwards/scs/v2"
 )
 
-const portNumber = ":8080"
+const portNumber = ":8081"
 
 var app config.AppConfig
 var session *scs.SessionManager
@@ -24,10 +25,14 @@ var infoLog *log.Logger
 var errorLog *log.Logger
 
 func main() {
-	err := run()
+	db, err := run()
 	if err != nil {
 		log.Fatal(err)
 	}
+	// shu yerde db driver package-in DB structynyn memberi
+	// onun hem SQL propertisi bolany ucin, o property hem *sql.DB type-da bolany ucin
+	// onun CLose funksiyasyny ulanyp bilyaris
+	defer db.SQL.Close()
 	fmt.Printf("Server started on port %s\n", portNumber)
 
 	// serverimiz goshmaca configurationlar bilen ishleder yaly http.Server bilen ishledyaris
@@ -43,11 +48,14 @@ func main() {
 	log.Fatal(err)
 }
 
-func run() error {
+func run() (*driver.DB, error) {
 	// what am I going to put in the session
 	// sessionda data saklajakdygymyzy birinji applicationa bildirmeli
 	// gob => built in package
 	gob.Register(models.Reservation{})
+	gob.Register(models.User{})
+	gob.Register(models.Room{})
+	gob.Register(models.Restriction{})
 
 	//change this to true when in production
 	app.InProduction = false
@@ -69,11 +77,20 @@ func run() error {
 	// app configin seesionyna session manager berdik
 	app.Session = session
 
+	//connect to database
+	log.Println("Connecting to database...")
+	db, err := driver.ConnectSQL("host=localhost port=5432 dbname=booking user=postgres password=")
+	if err != nil {
+		log.Fatal("Cannot connect to database! Dying...")
+	}
+
+	log.Println("Connected to database")
+
 	// hemme parse edilen template-leri tc variable-a assign etdik
 	tc, err := render.CreateTemplateCache()
 	if err != nil {
-		log.Fatal(err)
-		return err
+		log.Fatal("Cannot create template cache")
+		return nil, err
 	}
 
 	// parse edilen template-leri app configdaki TemplateCache-e beryaris
@@ -85,13 +102,17 @@ func run() error {
 	// app configurationlaryny render package-da ulanmak ucin doreden app configimizn adresini render
 	// package-in NewTemplate funksiyasyna iberyaris. Bu funksiya bolsa *config.AppConfig garashyar we gelen adresi bir
 	// variable-a denleyar we netijede shu yerde doredilen app configurationymyz render packageda ulanar yaly bolar
-	render.NewTemplate(&app)
+	render.NewRenderer(&app)
 
 	// app configurationlaryny handlers package-da ulanmak ucin doreden app configimizn adresini handler
 	// package-in NewRepa funksiyasyna iberyaris. Bu funksiya bolsa *config.AppConfig garashyar we gelen adresi bir
 	// variable-a denleyar we netijede shu yerde doredilen app configurationymyz handlers packageda ulanar yaly bolar
-	repo := handlers.NewRepo(&app)
+
+	// yokarda database connection acyldy, indi sho connectiony bashga packageler-de ulanar yaly bir zat etmeli
+	// handlers package-da ulanmak ucin biz handler.go-da bir zatlar etdik. yone shonun ucin hem acylan db *driver.DB type gerek
+	// shonun ucin ashakda NewRepo funksiyasyna parametr hokmunde ugradyarys
+	repo := handlers.NewRepo(&app, db)
 	handlers.NewHandlers(repo)
 	helpers.NewHelpers(&app)
-	return nil
+	return db, nil
 }

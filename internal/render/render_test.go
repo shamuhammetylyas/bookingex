@@ -40,19 +40,19 @@ func TestRenderTemplate(t *testing.T) {
 
 	var ww myWriter
 
-	err = RenderTemplate(&ww, req, "home.page.tmpl", &models.TemplateData{})
+	err = Template(&ww, req, "home.page.tmpl", &models.TemplateData{})
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = RenderTemplate(&ww, req, "non-existent.page.tmpl", &models.TemplateData{})
+	err = Template(&ww, req, "non-existent.page.tmpl", &models.TemplateData{})
 	if err == nil {
 		t.Error("Rendered non existent template")
 	}
 }
 
 func TestNewTemplate(t *testing.T) {
-	NewTemplate(app)
+	NewRenderer(app)
 }
 
 func TestCreateTemplateCache(t *testing.T) {

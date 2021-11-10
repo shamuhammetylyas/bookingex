@@ -32,15 +32,15 @@ func AddDefaultData(td *models.TemplateData, req *http.Request) *models.Template
 	return td
 }
 
-//NewTemplate sets the app config for template package
+// NewRenderer sets the app config for template package
 // app configlerini render package-da ulanmak ucin
 // bu yerde-de doredilen app configin adresini alyp app variable-a denledik
 // app=0xc123453453(main.go-da doredilen app config adresi)
-func NewTemplate(a *config.AppConfig) {
+func NewRenderer(a *config.AppConfig) {
 	app = a
 }
 
-func RenderTemplate(res http.ResponseWriter, req *http.Request, tmpl string, td *models.TemplateData) error {
+func Template(res http.ResponseWriter, req *http.Request, tmpl string, td *models.TemplateData) error {
 	// eger app production mod-da bolsa onda app configin icindaki parse edilen templateler ulanylyar
 	// app configin icinde
 	// app compile edilende templateler parse edilyarde app configin icindaki TemplateCache-de saklanyar

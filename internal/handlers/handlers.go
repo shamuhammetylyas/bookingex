@@ -3,12 +3,17 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/ShamuhammetYlyas/bookings/internal/config"
+	"github.com/ShamuhammetYlyas/bookings/internal/driver"
 	"github.com/ShamuhammetYlyas/bookings/internal/forms"
 	"github.com/ShamuhammetYlyas/bookings/internal/helpers"
 	"github.com/ShamuhammetYlyas/bookings/internal/models"
 	"github.com/ShamuhammetYlyas/bookings/internal/render"
+	"github.com/ShamuhammetYlyas/bookings/internal/repository"
+	"github.com/ShamuhammetYlyas/bookings/internal/repository/dbrepo"
 )
 
 //Repo the repository used by the handlers
@@ -21,6 +26,7 @@ var Repo *Repository
 // App-i main.go-dan NewRepo funksiyasyna gelyan app-in adresine denledik
 type Repository struct {
 	App *config.AppConfig
+	DB  repository.DatabaseRepo
 }
 
 // NewRepo creates a new repository
@@ -28,9 +34,10 @@ type Repository struct {
 // bu funksiya hem bir repository doredip shonun adresini return edyar.
 // main.go-da hem shu doredilen repositoryn adresini alyp bir repo variable-a
 // denledik yagny main.go-da repo=0xc213123123(doredilen repositoryn adresi)
-func NewRepo(a *config.AppConfig) *Repository {
+func NewRepo(a *config.AppConfig, db *driver.DB) *Repository {
 	return &Repository{
 		App: a,
+		DB:  dbrepo.NewPostgresRepo(db.SQL, a),
 	}
 }
 
@@ -56,31 +63,31 @@ func (m *Repository) Home(res http.ResponseWriter, req *http.Request) {
 	// Put session managerin receiver funksiyasy
 	// m.App.Session.Put(req.Context(), "remote_ip", remoteIP)
 
-	render.RenderTemplate(res, req, "home.page.tmpl", &models.TemplateData{})
+	render.Template(res, req, "home.page.tmpl", &models.TemplateData{})
 }
 
 func (m *Repository) About(res http.ResponseWriter, req *http.Request) {
 	//some logic here
-	render.RenderTemplate(res, req, "about.page.tmpl", &models.TemplateData{})
+	render.Template(res, req, "about.page.tmpl", &models.TemplateData{})
 }
 
 func (m *Repository) Contact(res http.ResponseWriter, req *http.Request) {
-	render.RenderTemplate(res, req, "contact.page.tmpl", &models.TemplateData{})
+	render.Template(res, req, "contact.page.tmpl", &models.TemplateData{})
 }
 
 func (m *Repository) Generals(res http.ResponseWriter, req *http.Request) {
-	render.RenderTemplate(res, req, "generals.page.tmpl", &models.TemplateData{})
+	render.Template(res, req, "generals.page.tmpl", &models.TemplateData{})
 }
 
 func (m *Repository) Majors(res http.ResponseWriter, req *http.Request) {
-	render.RenderTemplate(res, req, "majors.page.tmpl", &models.TemplateData{})
+	render.Template(res, req, "majors.page.tmpl", &models.TemplateData{})
 }
 
 func (m *Repository) Reservation(res http.ResponseWriter, req *http.Request) {
 	var emptyReservation models.Reservation
 	data := make(map[string]interface{})
 	data["reservation"] = emptyReservation
-	render.RenderTemplate(res, req, "make-reservation.page.tmpl", &models.TemplateData{
+	render.Template(res, req, "make-reservation.page.tmpl", &models.TemplateData{
 		// laravelidaki formdaky old value-lar ucin we formyn errorlaryny gorkezmek ucin
 		// renderde-de form objecti gerek bolyar
 		Form: forms.New(nil),
@@ -95,11 +102,36 @@ func (m *Repository) PostReservation(res http.ResponseWriter, req *http.Request)
 		return
 	}
 
+	sd := req.Form.Get("start_date")
+	ed := req.Form.Get("start_date")
+
+	// 2020-01-01  --- 01/02/ 03:04:05PM '06-0700
+	layout := "2006-01-02"
+	startDate, err := time.Parse(layout, sd)
+	if err != nil {
+		helpers.ServerError(res, err)
+		return
+	}
+	endDate, err := time.Parse(layout, ed)
+	if err != nil {
+		helpers.ServerError(res, err)
+		return
+	}
+
+	roomID, err := strconv.Atoi(req.Form.Get("room_id"))
+	if err != nil {
+		helpers.ServerError(res, err)
+		return
+	}
+
 	reservation := models.Reservation{
 		FirstName: req.Form.Get("first_name"),
 		LastName:  req.Form.Get("last_name"),
 		Phone:     req.Form.Get("phone"),
 		Email:     req.Form.Get("email"),
+		StartDate: startDate,
+		EndDate:   endDate,
+		RoomID:    roomID,
 	}
 	//req.PostForm dine ParseForm metody cagyrylanyndan sonra ulayp bolyar
 	//POST, PUT, PATCH metodlary bilen gelen formyn parsed edilen gornushini saklayar
@@ -113,7 +145,7 @@ func (m *Repository) PostReservation(res http.ResponseWriter, req *http.Request)
 		data := make(map[string]interface{})
 		data["reservation"] = reservation
 
-		render.RenderTemplate(res, req, "make-reservation.page.tmpl", &models.TemplateData{
+		render.Template(res, req, "make-reservation.page.tmpl", &models.TemplateData{
 			// laravelidaki formdaky old value-lar ucin we formyn errorlaryny gorkezmek ucin
 			// renderde-de form objecti gerek bolyar
 			Form: form,
@@ -123,12 +155,34 @@ func (m *Repository) PostReservation(res http.ResponseWriter, req *http.Request)
 		return
 	}
 
+	newReservationID, err := m.DB.InsertReservation(reservation)
+	if err != nil {
+		helpers.ServerError(res, err)
+		return
+	}
+
+	restriction := models.RoomRestriction{
+		StartDate:     startDate,
+		EndDate:       endDate,
+		RoomID:        roomID,
+		ReservationID: newReservationID,
+		RestrictionID: 1,
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
+	}
+
+	err = m.DB.InsertRoomRestriction(restriction)
+	if err != nil {
+		helpers.ServerError(res, err)
+		return
+	}
+
 	m.App.Session.Put(req.Context(), "reservation", reservation)
 	http.Redirect(res, req, "/reservation-summary", http.StatusSeeOther)
 }
 
 func (m *Repository) Availability(res http.ResponseWriter, req *http.Request) {
-	render.RenderTemplate(res, req, "search-availability.page.tmpl", &models.TemplateData{})
+	render.Template(res, req, "search-availability.page.tmpl", &models.TemplateData{})
 }
 
 type jsonResponse struct {
@@ -176,7 +230,7 @@ func (m *Repository) ReservationSummary(res http.ResponseWriter, req *http.Reque
 	data := make(map[string]interface{})
 	data["reservation"] = reservation
 
-	render.RenderTemplate(res, req, "reservation-summary.page.tmpl", &models.TemplateData{
+	render.Template(res, req, "reservation-summary.page.tmpl", &models.TemplateData{
 		Data: data,
 	})
 }

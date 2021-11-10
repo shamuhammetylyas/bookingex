@@ -26,6 +26,23 @@
                     {{end}}
                     <input type="text" name="last_name" id="last_name" class="form-control {{with .Form.Errors.Get "last_name"}} is-invalid {{end}}" required autocomplete="off" value="{{$res.LastName}}">
                 </div>
+                <div class="form-group mt-3">
+                    <label for="start_date">Start date:</label>
+                    {{with .Form.Errors.Get "start_date"}}
+                        <label for="error-start_date" class="text-danger">{{ . }}</label>
+                    {{end}}
+                    <input type="text" name="start_date" id="start_date" class="form-control {{with .Form.Errors.Get "start_date"}} is-invalid {{end}}" required
+                        autocomplete="off">
+                </div>
+                <div class="form-group mt-3">
+                    <label for="start_date">End date:</label>
+                    {{with .Form.Errors.Get "end_date"}}
+                        <label for="error-end_date" class="text-danger">{{ . }}</label>
+                    {{end}}
+                    <input type="text" name="end_date" id="end_date" class="form-control {{with .Form.Errors.Get "end_date"}} is-invalid {{end}}" required
+                        autocomplete="off">
+                </div>
+                <input type="hidden" name="room_id" value="1">
                 <div class="form-group  mt-3">
                     <label for="email">Email:</label>
                     {{with .Form.Errors.Get "email"}}
