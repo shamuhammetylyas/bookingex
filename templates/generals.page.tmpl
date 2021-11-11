@@ -56,7 +56,6 @@
         </div>
   </form>
 `
-
         attention.custom({
             msg: html,
             title: "Choose your dates",
@@ -64,7 +63,8 @@
                 const elem = document.getElementById('reservation-dates-modal');
                 const rangepicker = new DateRangePicker(elem, {
                     format: "yyyy-mm-dd",
-                    showOnFocus: true
+                    showOnFocus: true,
+                    minDate: new Date()
                 });
             },
             didOpen: () => {
@@ -73,14 +73,26 @@
             },
             callback: function (result) {
                 let form = document.getElementById("check-availability-form");
-                let formData = new FormData(form)
-                formData.append("csrf_token", "{{.CSRFToken}}")
+                let formData = new FormData(form);
+                formData.append("csrf_token", "{{.CSRFToken}}");
+                formData.append("room_id", "1");
                 fetch('/search-availability-json', {
                         method: "POST",
                         body: formData
                     }).then(response => response.json())
                     .then(data => {
-                        console.log(data);
+                        if (data.ok){
+                            attention.custom({
+                                icon:'success',
+                                msg: '<p>Room is available</p><p><a href="/book-room?id='+data.room_id+'&s='+data.start_date+'&e='+data.end_date+'" class="btn btn-primary">Book now</a></p>',
+                                showConfirmButton: false
+                            })
+                        }else{
+                            attention.error({
+                                msg: "No availability",
+
+                            })
+                        }
                     })
             }
         });
