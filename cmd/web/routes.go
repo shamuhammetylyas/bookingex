@@ -48,6 +48,7 @@ func routes(app *config.AppConfig) http.Handler {
 	mux.Get("/search-availability", handlers.Repo.Availability)
 	mux.Post("/search-availability", handlers.Repo.PostAvailability)
 	mux.Post("/search-availability-json", handlers.Repo.AvailabilityJSON)
+	mux.Get("/choose-room/{id}", handlers.Repo.ChooseRoom)
 
 	// web sahypada goyulan static fayllary(img, css, js) sho web sahypalarda enable etmek ucin fileServer doretmeli
 	// bu fileServer file-leri serve etmek ucin bir manager diyip hasap edelin. FileServer bir fileSystem-e garashyar

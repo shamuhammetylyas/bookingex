@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -14,6 +16,7 @@ import (
 	"github.com/ShamuhammetYlyas/bookings/internal/render"
 	"github.com/ShamuhammetYlyas/bookings/internal/repository"
 	"github.com/ShamuhammetYlyas/bookings/internal/repository/dbrepo"
+	"github.com/go-chi/chi/v5"
 )
 
 //Repo the repository used by the handlers
@@ -84,14 +87,34 @@ func (m *Repository) Majors(res http.ResponseWriter, req *http.Request) {
 }
 
 func (m *Repository) Reservation(res http.ResponseWriter, req *http.Request) {
-	var emptyReservation models.Reservation
+	reservation, ok := m.App.Session.Get(req.Context(), "reservation").(models.Reservation)
+	if !ok {
+		helpers.ServerError(res, errors.New("Cannot get reservation from session"))
+		return
+	}
+
+	room, err := m.DB.GetRoomByID(reservation.RoomID)
+	if err != nil {
+		helpers.ServerError(res, err)
+		return
+	}
+
+	reservation.Room.RoomName = room.RoomName
+
+	sd := reservation.StartDate.Format("2006-01-02")
+	ed := reservation.EndDate.Format("2006-01-02")
+
+	stringMap := make(map[string]string)
+	stringMap["start_date"] = sd
+	stringMap["end_date"] = ed
 	data := make(map[string]interface{})
-	data["reservation"] = emptyReservation
+	data["reservation"] = reservation
 	render.Template(res, req, "make-reservation.page.tmpl", &models.TemplateData{
 		// laravelidaki formdaky old value-lar ucin we formyn errorlaryny gorkezmek ucin
 		// renderde-de form objecti gerek bolyar
-		Form: forms.New(nil),
-		Data: data,
+		Form:      forms.New(nil),
+		Data:      data,
+		StringMap: stringMap,
 	})
 }
 
@@ -185,6 +208,53 @@ func (m *Repository) Availability(res http.ResponseWriter, req *http.Request) {
 	render.Template(res, req, "search-availability.page.tmpl", &models.TemplateData{})
 }
 
+func (m *Repository) PostAvailability(res http.ResponseWriter, req *http.Request) {
+	start := req.Form.Get("start")
+	end := req.Form.Get("end")
+
+	layout := "2006-01-02"
+	startDate, err := time.Parse(layout, start)
+	if err != nil {
+		fmt.Println(err)
+		// helpers.ServerError(res, err)
+		return
+	}
+
+	endDate, err := time.Parse(layout, end)
+	if err != nil {
+		fmt.Println(err)
+		// helpers.ServerError(res, err)
+		return
+	}
+
+	rooms, err := m.DB.SearchAvailabilityForAllRooms(startDate, endDate)
+	if err != nil {
+		fmt.Println(err)
+		// helpers.ServerError(res, err)
+		return
+	}
+
+	if len(rooms) == 0 {
+		m.App.Session.Put(req.Context(), "error", "No availability")
+		http.Redirect(res, req, "/search-availability", http.StatusSeeOther)
+		return
+	}
+
+	data := make(map[string]interface{})
+	data["rooms"] = rooms
+
+	reservation := models.Reservation{
+		StartDate: startDate,
+		EndDate:   endDate,
+	}
+
+	m.App.Session.Put(req.Context(), "reservation", reservation)
+
+	render.Template(res, req, "choose-room.page.tmpl", &models.TemplateData{
+		Data: data,
+	})
+}
+
 type jsonResponse struct {
 	OK      bool   `json:"ok"`
 	Message string `json:"message"`
@@ -205,10 +275,6 @@ func (m *Repository) AvailabilityJSON(res http.ResponseWriter, req *http.Request
 	res.Header().Set("Content-Type", "application/json")
 	// fmt.Fprint(res, out)
 	res.Write(out)
-
-}
-
-func (m *Repository) PostAvailability(res http.ResponseWriter, req *http.Request) {
 
 }
 
@@ -233,4 +299,26 @@ func (m *Repository) ReservationSummary(res http.ResponseWriter, req *http.Reque
 	render.Template(res, req, "reservation-summary.page.tmpl", &models.TemplateData{
 		Data: data,
 	})
+}
+
+func (m *Repository) ChooseRoom(res http.ResponseWriter, req *http.Request) {
+	roomID, err := strconv.Atoi(chi.URLParam(req, "id"))
+	if err != nil {
+		helpers.ServerError(res, err)
+		return
+	}
+
+	m.App.Session.Get(req.Context(), "reservation")
+
+	reservation, ok := m.App.Session.Get(req.Context(), "reservation").(models.Reservation)
+	if !ok {
+		helpers.ServerError(res, err)
+		return
+	}
+
+	reservation.RoomID = roomID
+	m.App.Session.Put(req.Context(), "reservation", reservation)
+
+	http.Redirect(res, req, "/make-reservation", http.StatusSeeOther)
+
 }

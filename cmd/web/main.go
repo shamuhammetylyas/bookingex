@@ -89,7 +89,7 @@ func run() (*driver.DB, error) {
 	// hemme parse edilen template-leri tc variable-a assign etdik
 	tc, err := render.CreateTemplateCache()
 	if err != nil {
-		log.Fatal("Cannot create template cache")
+		log.Fatal(err)
 		return nil, err
 	}
 
