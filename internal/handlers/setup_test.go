@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"testing"
 	"time"
 
 	"github.com/ShamuhammetYlyas/bookings/internal/config"
@@ -24,8 +25,7 @@ var session *scs.SessionManager
 var functions = template.FuncMap{}
 var pathToTemplates = "./../../templates"
 
-func getRoutes() http.Handler {
-
+func TestMain(m *testing.M) {
 	gob.Register(models.Reservation{})
 
 	app.InProduction = false
@@ -52,13 +52,17 @@ func getRoutes() http.Handler {
 	app.TemplateCache = tc
 	app.UseCache = true
 
+	repo := NewTestRepo(&app)
+	NewHandlers(repo)
 	render.NewRenderer(&app)
 
-	repo := NewRepo(&app)
-	NewHandlers(repo)
+	//runs the test just before die
+	os.Exit(m.Run())
+}
 
+// ashakdaky getRoutes funksiyasy test bashlamak cagyrylyar
+func getRoutes() http.Handler {
 	//routes
-
 	mux := chi.NewRouter()
 
 	mux.Use(middleware.Recoverer)

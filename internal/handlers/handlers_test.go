@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"testing"
@@ -18,33 +17,34 @@ var theTests = []struct {
 	params             []postData
 	expectedStatusCode int
 }{
-	{"home", "/", "GET", []postData{}, http.StatusOK},
-	{"about", "/about", "GET", []postData{}, http.StatusOK},
-	{"gq", "/generals-quarters", "GET", []postData{}, http.StatusOK},
-	{"ms", "/majors-suite", "GET", []postData{}, http.StatusOK},
-	{"sa", "/search-availability", "GET", []postData{}, http.StatusOK},
-	{"contact", "/contact", "GET", []postData{}, http.StatusOK},
-	{"reservation-get", "/make-reservation", "GET", []postData{}, http.StatusOK},
-	{"post-search-avail", "/search-availability", "POST", []postData{
-		{key: "start", value: "2020-01-01"},
-		{key: "end", value: "2020-01-02"},
-	}, http.StatusOK},
-	{"post-search-avail-json", "/search-availability-json", "POST", []postData{
-		{key: "start", value: "2020-01-01"},
-		{key: "end", value: "2020-01-02"},
-	}, http.StatusOK},
-	{"make-reservation-start", "/make-reservation", "POST", []postData{
-		{key: "first_name", value: "Shamuhammet"},
-		{key: "last_name", value: "Ylyasov"},
-		{key: "email", value: "shammy@gmail.com"},
-		{key: "phone", value: "993622711589"},
-	}, http.StatusOK},
+	// {"home", "/", "GET", []postData{}, http.StatusOK},
+	// {"about", "/about", "GET", []postData{}, http.StatusOK},
+	// {"gq", "/generals-quarters", "GET", []postData{}, http.StatusOK},
+	// {"ms", "/majors-suite", "GET", []postData{}, http.StatusOK},
+	// {"sa", "/search-availability", "GET", []postData{}, http.StatusOK},
+	// {"contact", "/contact", "GET", []postData{}, http.StatusOK},
+	// {"reservation-get", "/make-reservation", "GET", []postData{}, http.StatusOK},
+	// {"post-search-avail", "/search-availability", "POST", []postData{
+	// 	{key: "start", value: "2020-01-01"},
+	// 	{key: "end", value: "2020-01-02"},
+	// }, http.StatusOK},
+	// {"post-search-avail-json", "/search-availability-json", "POST", []postData{
+	// 	{key: "start", value: "2020-01-01"},
+	// 	{key: "end", value: "2020-01-02"},
+	// }, http.StatusOK},
+	// {"make-reservation-start", "/make-reservation", "POST", []postData{
+	// 	{key: "first_name", value: "Shamuhammet"},
+	// 	{key: "last_name", value: "Ylyasov"},
+	// 	{key: "email", value: "shammy@gmail.com"},
+	// 	{key: "phone", value: "993622711589"},
+	// }, http.StatusOK},
 }
 
 func TestHandlers(t *testing.T) {
 	// getRoutes bize http.Handler return edyar.
 	// bu bir yone funksiya. route-leri return edyan
 	// setup_test.go-da yazyldy
+	// getRoutes test bashlamak cagyrylyar
 	routes := getRoutes()
 
 	// httptest.NewTLSServer testowy server start edyar
@@ -94,3 +94,20 @@ func TestHandlers(t *testing.T) {
 		}
 	}
 }
+
+// func TestRepository_Reservation(t *testing.T) {
+// 	reservation := models.Reservation{
+// 		RoomID: 1,
+// 		Room: models.Room{
+// 			ID:       1,
+// 			RoomName: "General's Quarters",
+// 		},
+// 	}
+
+// 	req, _ := http.NewRequest("/GET", "/make-reservation", nil)
+
+// }
+
+// func getCtx(req *http.Request) context.Context{
+
+// }

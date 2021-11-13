@@ -44,6 +44,13 @@ func NewRepo(a *config.AppConfig, db *driver.DB) *Repository {
 	}
 }
 
+func NewTestRepo(a *config.AppConfig) *Repository {
+	return &Repository{
+		App: a,
+		DB:  dbrepo.NewTestingRepo(a),
+	}
+}
+
 //NewHandlers sets the repository for the handlers
 //NewHandlers funskiyasy main.go-da ulanylyar. Bu metod NewRepodan return edilen repositoryn adresine garashyar
 //we sho adresi alyp yokarda doredilen Repo variable-a denleyar. yagny shuwagt Repo = 0xca1231239(doredilen reponyn adresi)
@@ -291,6 +298,7 @@ func (m *Repository) AvailabilityJSON(res http.ResponseWriter, req *http.Request
 
 }
 
+// displays the reservation summary
 func (m *Repository) ReservationSummary(res http.ResponseWriter, req *http.Request) {
 	// m.App.Session.Get(req.Context(), "reservation") yazanymyz bilen sessiondan maglumat alyp bilemzok
 	// sessiondan maglumat almak ucin type-ni bildirmeli. bu yerde type assertion ulanyldy
@@ -321,6 +329,7 @@ func (m *Repository) ReservationSummary(res http.ResponseWriter, req *http.Reque
 	})
 }
 
+// Displays available rooms
 func (m *Repository) ChooseRoom(res http.ResponseWriter, req *http.Request) {
 	roomID, err := strconv.Atoi(chi.URLParam(req, "id"))
 	if err != nil {
@@ -341,4 +350,32 @@ func (m *Repository) ChooseRoom(res http.ResponseWriter, req *http.Request) {
 
 	http.Redirect(res, req, "/make-reservation", http.StatusSeeOther)
 
+}
+
+func (m *Repository) BookRoom(res http.ResponseWriter, req *http.Request) {
+	//id, s, e
+	roomID, _ := strconv.Atoi(req.URL.Query().Get("id"))
+	sd := req.URL.Query().Get("s")
+	ed := req.URL.Query().Get("e")
+
+	layout := "2006-01-02"
+	startDate, _ := time.Parse(layout, sd)
+	endDate, _ := time.Parse(layout, ed)
+
+	var reservation models.Reservation
+
+	room, err := m.DB.GetRoomByID(roomID)
+	if err != nil {
+		helpers.ServerError(res, err)
+		return
+	}
+
+	reservation.Room.RoomName = room.RoomName
+	reservation.RoomID = roomID
+	reservation.StartDate = startDate
+	reservation.EndDate = endDate
+
+	m.App.Session.Put(req.Context(), "reservation", reservation)
+
+	http.Redirect(res, req, "/make-reservation", http.StatusSeeOther)
 }
