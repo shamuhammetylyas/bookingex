@@ -33,6 +33,7 @@ func main() {
 	// onun hem SQL propertisi bolany ucin, o property hem *sql.DB type-da bolany ucin
 	// onun CLose funksiyasyny ulanyp bilyaris
 	defer db.SQL.Close()
+
 	fmt.Printf("Server started on port %s\n", portNumber)
 
 	// serverimiz goshmaca configurationlar bilen ishleder yaly http.Server bilen ishledyaris
