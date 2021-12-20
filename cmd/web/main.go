@@ -33,6 +33,18 @@ func main() {
 	// onun hem SQL propertisi bolany ucin, o property hem *sql.DB type-da bolany ucin
 	// onun CLose funksiyasyny ulanyp bilyaris
 	defer db.SQL.Close()
+	defer close(app.MailChan)
+	fmt.Println("Starting mail listener...")
+	listenForMail()
+
+	// msg := models.MailData{
+	// 	To:      "john@do.ca",
+	// 	From:    "me@here.com",
+	// 	Subject: "Some subject",
+	// 	Content: "",
+	// }
+
+	// app.MailChan <- msg
 
 	fmt.Printf("Server started on port %s\n", portNumber)
 
@@ -57,6 +69,9 @@ func run() (*driver.DB, error) {
 	gob.Register(models.User{})
 	gob.Register(models.Room{})
 	gob.Register(models.Restriction{})
+
+	mailChan := make(chan models.MailData)
+	app.MailChan = mailChan
 
 	//change this to true when in production
 	app.InProduction = false
@@ -106,7 +121,7 @@ func run() (*driver.DB, error) {
 	render.NewRenderer(&app)
 
 	// app configurationlaryny handlers package-da ulanmak ucin doreden app configimizn adresini handler
-	// package-in NewRepa funksiyasyna iberyaris. Bu funksiya bolsa *config.AppConfig garashyar we gelen adresi bir
+	// package-in NewRepo funksiyasyna iberyaris. Bu funksiya bolsa *config.AppConfig garashyar we gelen adresi bir
 	// variable-a denleyar we netijede shu yerde doredilen app configurationymyz handlers packageda ulanar yaly bolar
 
 	// yokarda database connection acyldy, indi sho connectiony bashga packageler-de ulanar yaly bir zat etmeli
